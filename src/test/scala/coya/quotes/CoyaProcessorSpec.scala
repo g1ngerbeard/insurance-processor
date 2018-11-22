@@ -30,16 +30,16 @@ class CoyaProcessorSpec extends FlatSpec with Matchers {
   val badHouse = House(rID(), BigDecimal(10000), badAddress, 100)
 
   /*
-   1000000 * 0.03 * 0.7 * 0.3 = 6.3 * 100 ??? = 630
+   1,000,000 * 0.03 * 0.7 * 0.3 = 6300
 
    1,000,000 * // house value
    0.03 * // house base premium value
    0.7 * // house risk surcharge
    0.3 // user risk surcharge
-   = 630 € per year
+   = 630 € per year ????
    */
   "user w/ URV 10 and house w/ URV 10" should "receive a good offer" in {
-    CoyaProcessor.priceFor(user10, List(coolHouse)) shouldEqual Some(BigDecimal(630))
+    CoyaProcessor.priceFor(user10, List(coolHouse)) shouldEqual Some(BigDecimal(6300))
   }
 
   "any user and house w/ URV > 501" should "be denied" in {
@@ -47,11 +47,11 @@ class CoyaProcessorSpec extends FlatSpec with Matchers {
   }
 
   /*
-   * 10000001 * 0.03 * 1.15 * 0.3 = 103 * 100 ??? = 10350
+   * 10000001 * 0.03 * 1.15 * 0.3 = 103500
    */
   "user w/ super expensive house" should "receive an offer" in {
     CoyaProcessor.priceFor(user10, List(superExpensiveHouse)) shouldEqual Some(
-      BigDecimal(10350))
+      BigDecimal(103500))
   }
 
   "user w/ too small or too big house" should "be denied" in {
@@ -60,10 +60,10 @@ class CoyaProcessorSpec extends FlatSpec with Matchers {
   }
 
   /*
-   * 1000 * 0.10 * (18 * 0.08) * 0.3 = 43.2
+   * 1000 * 0.10 * (18 * 0.08) * 0.3 = 43
    */
   "user w/ URV 10" should "receive an offer for a bike" in {
-    CoyaProcessor.priceFor(user10, List(funBike)) shouldBe Some(BigDecimal(43.2))
+    CoyaProcessor.priceFor(user10, List(funBike)) shouldBe Some(BigDecimal(43))
   }
 
   /*

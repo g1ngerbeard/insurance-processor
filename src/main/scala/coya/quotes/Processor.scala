@@ -12,18 +12,17 @@ object CoyaProcessor extends Processor {
 
   def priceFor(user: User, products: Seq[Product]): Option[BigDecimal] = {
 
-    val productSurcharges =
-      products.map(p => productSurcharge(user, p).map(_ * p.value))
+    val surcharges = userSurcharge(user) +: products.map(p => productSurcharge(user, p).map(_ * p.value))
 
-    val surcharges = userSurcharge(user) +: productSurcharges
-
-    surcharges.foldLeft(initValue) {
-      case (resOpt, surchargeOpt) =>
-        for {
-          res <- resOpt
-          surcharge <- surchargeOpt
-        } yield res * surcharge
-    }
+    surcharges
+      .foldLeft(initValue) {
+        case (resOpt, surchargeOpt) =>
+          for {
+            res <- resOpt
+            surcharge <- surchargeOpt
+          } yield res * surcharge
+      }
+      .map(_.setScale(0, BigDecimal.RoundingMode.FLOOR))
 
   }
 
@@ -46,14 +45,13 @@ object CoyaProcessor extends Processor {
           BigDecimal(surcharge)
       }
 
-  def productSurcharge(u: User, p: Product): Option[BigDecimal] = {
+  def productSurcharge(u: User, p: Product): Option[BigDecimal] =
     p match {
       case h: House   => houseSurcharge(h).map(_ * BigDecimal(0.03))
       case b: Banana  => bananaSurcharge(b, u).map(_ * BigDecimal(1.15))
-      case b: Bicycle => bicycleSurcharge(b).map(_ * BigDecimal(0.10))
+      case b: Bicycle => bicycleSurcharge(b).map(_ * BigDecimal(0.10)).filter(_ > 100 && u.risk > 150)
       case _          => None
     }
-  }
 
   private def houseSurcharge(house: House): Option[BigDecimal] = {
     if (house.value > BigDecimal(10000000)) {
@@ -79,10 +77,5 @@ object CoyaProcessor extends Processor {
 
   private def bicycleSurcharge(bike: Bicycle): Option[BigDecimal] =
     Some(bike.gears * 0.08)
-
-  // todo: apply this
-  private def additionalBicycleRules(totalSurcharge: Option[BigDecimal],
-                                     user: User): Option[BigDecimal] =
-    totalSurcharge.filter(_ > 100 && user.risk > 150)
 
 }
