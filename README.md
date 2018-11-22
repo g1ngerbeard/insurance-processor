@@ -1,8 +1,6 @@
-# Coya Challenge
+# Insurance calculator 
 
-## Our Problem
-
-At Coya we're working hard to make a quote processor.
+## Problem description
 
 A quote processor will be an object that will get information about a potential customer and the product that they want to insure, and will return the insurance premium (or whether we even want to offer the customer insurance).
 
@@ -19,8 +17,6 @@ To work towards this, we already have a set of models:
 - A user (with an id, an address, and a risk value)
 - An address (with an id and a location risk value)
 - A product (with an id and a price value)
-
-(Risk values are in our patented Universal Risk Value Scale [tm])
 
 For products we have modelled in our system the following types:
 
@@ -83,20 +79,3 @@ Depending on our estimation of the risk value of the user, we apply the followin
 - There's a surcharge of `number of gears * 0.08`
 - We won't offer bicycle insurance to users with a risk value of more than 150, if the total premium is bigger than 100 €.
 
-## The challenge
-
-Please, implement for us as much as possible of the quote processor in about 2 or 3 hours. We don't worry here that much about completeness as much as about code structure.
-
-You can use any programming language you want to solve the challenge and you won't be penalized for any choice but we do provide a basic skeleton in Scala with some very basic tests (that can be run with `sbt test` if you have [sbt](http://www.scala-sbt.org/) installed).
-
-We recommend you to extend these tests a bit, or if you don't use Scala to provide tests of your own. Even if you don't use Scala, they can help as examples, though.
-
-Please commit regularly changes in git (we won't penalize experimentation, quite the opposite actually) and when you finish, send us a git bundle. To produce it, run, from inside the repository, the following:
-
-```
-$ git bundle create $myName-coya-challenge.git master
-```
-
-This will generate a git bundle file that you can send us.
-
-Happy hacking!

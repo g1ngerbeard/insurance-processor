@@ -6,7 +6,7 @@ trait Processor {
   def priceFor(u: User, p: Seq[Product]): Option[BigDecimal]
 }
 
-object CoyaProcessor extends Processor {
+object DefaultProcessor extends Processor {
 
   def priceFor(user: User, products: Seq[Product]): Option[BigDecimal] =
     products

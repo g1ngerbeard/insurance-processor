@@ -1,12 +1,12 @@
 package coya.quotes
 
 import coya.models._
-import coya.quotes.CoyaProcessorSpec.rID
+import coya.quotes.DefaultProcessorSpec.rID
 import org.scalatest._
 
 import scala.util.Random
 
-class CoyaProcessorSpec extends FlatSpec with Matchers {
+class DefaultProcessorSpec extends FlatSpec with Matchers {
   val goodAddress = Address(rID(), 10)
   val badAddress = Address(rID(), 502)
 
@@ -39,31 +39,31 @@ class CoyaProcessorSpec extends FlatSpec with Matchers {
    = 630 € per year ????
    */
   "user w/ URV 10 and house w/ URV 10" should "receive a good offer" in {
-    CoyaProcessor.priceFor(user10, List(coolHouse)) shouldEqual Some(6300)
+    DefaultProcessor.priceFor(user10, List(coolHouse)) shouldEqual Some(6300)
   }
 
   "any user and house w/ URV > 501" should "be denied" in {
-    CoyaProcessor.priceFor(user10, List(badHouse)) shouldEqual None
+    DefaultProcessor.priceFor(user10, List(badHouse)) shouldEqual None
   }
 
   /*
    * 10000001 * 0.03 * 1.15 * 0.3 = 103500
    */
   "user w/ super expensive house" should "receive an offer" in {
-    CoyaProcessor.priceFor(user10, List(superExpensiveHouse)) shouldEqual Some(
+    DefaultProcessor.priceFor(user10, List(superExpensiveHouse)) shouldEqual Some(
       BigDecimal(103500))
   }
 
   "user w/ too small or too big house" should "be denied" in {
-    CoyaProcessor.priceFor(user10, List(tooSmallHouse)) shouldBe None
-    CoyaProcessor.priceFor(user10, List(tooBigHouse)) shouldBe None
+    DefaultProcessor.priceFor(user10, List(tooSmallHouse)) shouldBe None
+    DefaultProcessor.priceFor(user10, List(tooBigHouse)) shouldBe None
   }
 
   /*
    * 1000 * 0.10 * 18 * 0.08 * 0.3 = 43
    */
   "user w/ URV 10" should "receive an offer for a bike" in {
-    CoyaProcessor.priceFor(user10, List(funBike)) shouldBe Some(43)
+    DefaultProcessor.priceFor(user10, List(funBike)) shouldBe Some(43)
   }
 
   /*
@@ -77,37 +77,37 @@ class CoyaProcessorSpec extends FlatSpec with Matchers {
    premium is bigger than 100 €, we won't offer him insurance.
    */
   "user w/ URV 150 with bike w/ premium > 100" should "be denied" in {
-    CoyaProcessor.priceFor(user201, List(funBike)) shouldBe None
+    DefaultProcessor.priceFor(user201, List(funBike)) shouldBe None
   }
 
   /*
    * 15 * 1.15 * 1 = 17.25
    */
   "user w/ URV 150" should "receive an offer for good banana" in {
-    CoyaProcessor.priceFor(user150, List(goodBanana)) shouldBe Some(17)
+    DefaultProcessor.priceFor(user150, List(goodBanana)) shouldBe Some(17)
   }
 
   "user w/ URV 150 and bad banana" should "be denied" in {
-    CoyaProcessor.priceFor(user150, List(badBanana)) shouldBe None
+    DefaultProcessor.priceFor(user150, List(badBanana)) shouldBe None
   }
 
   "user w/ URV > 500" should "be denied" in {
-    CoyaProcessor.priceFor(user501, List(coolHouse)) shouldBe None
+    DefaultProcessor.priceFor(user501, List(coolHouse)) shouldBe None
   }
 
   "insurance offer" should "be denied for all products if one rule fail" in {
-    CoyaProcessor.priceFor(user201, List(funBike, coolHouse)) shouldBe None
+    DefaultProcessor.priceFor(user201, List(funBike, coolHouse)) shouldBe None
   }
 
   /*
   *  (1000 * 0.10 * 18 * 0.08 * 1) + (15 * 1.15 * 1) = 161
   */
   it should "be approved for multiple products if all rules pass" in {
-    CoyaProcessor.priceFor(user150, List(funBike, goodBanana)) shouldBe Some(161)
+    DefaultProcessor.priceFor(user150, List(funBike, goodBanana)) shouldBe Some(161)
   }
 
 }
 
-object CoyaProcessorSpec {
+object DefaultProcessorSpec {
   def rID(): Int = Random.nextInt()
 }
