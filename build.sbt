@@ -5,8 +5,11 @@ lazy val root = (project in file(".")).
     inThisBuild(List(
       organization := "com.coya",
       scalaVersion := "2.12.7",
-      version      := "0.1.1-SNAPSHOT"
+      version := "0.1.1-SNAPSHOT"
     )),
     name := "CoyaBackendChallenge",
-    libraryDependencies += scalaTest % Test
+    libraryDependencies ++= Seq(
+      scalaTest % Test,
+      scalaCheck % Test
+    )
   )
