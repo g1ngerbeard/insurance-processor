@@ -1,6 +1,6 @@
-package coya.quotes
+package insurance.quotes
 
-import coya.models._
+import insurance.models._
 
 trait Processor {
   def priceFor(u: User, p: Seq[Product]): Option[BigDecimal]

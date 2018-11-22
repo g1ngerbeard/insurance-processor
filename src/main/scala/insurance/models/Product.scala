@@ -1,4 +1,4 @@
-package coya.models
+package insurance.models
 
 sealed trait Product {
   def id: Int

@@ -1,7 +1,7 @@
-package coya.quotes
+package insurance.quotes
 
-import coya.models._
-import coya.quotes.DefaultProcessorSpec.rID
+import insurance.models._
+import insurance.quotes.DefaultProcessorSpec.rID
 import org.scalatest._
 
 import scala.util.Random
