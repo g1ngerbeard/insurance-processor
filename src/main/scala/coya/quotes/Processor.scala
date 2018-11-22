@@ -8,8 +8,24 @@ trait Processor {
 
 object CoyaProcessor extends Processor {
 
+  val initValue: Option[BigDecimal] = Some(BigDecimal(1))
 
-  def priceFor(u: User, p: Seq[Product]): Option[BigDecimal] = None
+  def priceFor(user: User, products: Seq[Product]): Option[BigDecimal] = {
+
+    val productSurcharges =
+      products.map(p => productSurcharge(user, p).map(_ * p.value))
+
+    val surcharges = userSurcharge(user) +: productSurcharges
+
+    surcharges.foldLeft(initValue) {
+      case (resOpt, surchargeOpt) =>
+        for {
+          res <- resOpt
+          surcharge <- surchargeOpt
+        } yield res * surcharge
+    }
+
+  }
 
   val userRiskToSurcharge = Vector(
     20 -> 0.3,
@@ -26,16 +42,18 @@ object CoyaProcessor extends Processor {
   private def userSurcharge(user: User): Option[BigDecimal] =
     userRiskToSurcharge
       .collectFirst {
-        case (limit, surcharge) if user.risk <= limit => BigDecimal(surcharge)
+        case (limit, surcharge: Double) if user.risk <= limit =>
+          BigDecimal(surcharge)
       }
 
-  private def baseProductSurcharge(product: Product): Option[BigDecimal] =
-    product match {
-      case _: House   => Some(BigDecimal(0.03))
-      case _: Banana  => Some(BigDecimal(1.15))
-      case _: Bicycle => Some(BigDecimal(0.10))
+  def productSurcharge(u: User, p: Product): Option[BigDecimal] = {
+    p match {
+      case h: House   => houseSurcharge(h).map(_ * BigDecimal(0.03))
+      case b: Banana  => bananaSurcharge(b, u).map(_ * BigDecimal(1.15))
+      case b: Bicycle => bicycleSurcharge(b).map(_ * BigDecimal(0.10))
       case _          => None
     }
+  }
 
   private def houseSurcharge(house: House): Option[BigDecimal] = {
     if (house.value > BigDecimal(10000000)) {
@@ -45,7 +63,8 @@ object CoyaProcessor extends Processor {
     } else {
       houseRiskSurcharge
         .collectFirst {
-          case (limit, surcharge) if house.address.locationRisk <= limit =>
+          case (limit, surcharge: Double)
+              if house.address.locationRisk <= limit =>
             BigDecimal(surcharge)
         }
     }
@@ -58,9 +77,12 @@ object CoyaProcessor extends Processor {
       Some(BigDecimal(1))
     }
 
-  private def bicycleSurcharge(bike: Bicycle): Option[BigDecimal] = Some(bike.gears * 0.08)
+  private def bicycleSurcharge(bike: Bicycle): Option[BigDecimal] =
+    Some(bike.gears * 0.08)
 
-  private def additionalBicycleRules(totalSurcharge: Option[BigDecimal], user: User): Option[BigDecimal] =
+  // todo: apply this
+  private def additionalBicycleRules(totalSurcharge: Option[BigDecimal],
+                                     user: User): Option[BigDecimal] =
     totalSurcharge.filter(_ > 100 && user.risk > 150)
 
 }

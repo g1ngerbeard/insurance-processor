@@ -100,8 +100,7 @@ class CoyaProcessorSpec extends FlatSpec with Matchers {
   }
 
   it should "be approved for multiple products if all rules pass" in {
-    CoyaProcessor.priceFor(user201, List(funBike, goodBanana)) shouldNot be(
-      None)
+    CoyaProcessor.priceFor(user201, List(funBike, goodBanana)) shouldNot be(None)
   }
 
 }
