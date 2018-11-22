@@ -1,5 +1,7 @@
 package coya.quotes
 
+import java.security.cert.PKIXRevocationChecker.Option
+
 import coya.models._
 import org.scalatest._
 
@@ -9,6 +11,8 @@ class CoyaProcessorSpec extends FlatSpec with Matchers {
 
   val userOne = User(1, goodAddress, 10)
   val userTwo = User(2, badAddress, 150)
+
+  val goodBanana = Banana(12, BigDecimal(15), 2)
 
   val funBike = Bicycle(1, BigDecimal(1000), 18)
   val coolHouse = House(2, BigDecimal(1000000), goodAddress, 40)
@@ -36,6 +40,14 @@ class CoyaProcessorSpec extends FlatSpec with Matchers {
    */
   "userTwo with funBike" should "be denied" in {
     CoyaProcessor.priceFor(userTwo, List(funBike)) shouldEqual None
+  }
+
+  "insurance offer" should "be denied for all products if one rule fail" in {
+    CoyaProcessor.priceFor(userTwo, List(funBike, coolHouse)) shouldBe None
+  }
+
+  it should "be approved for multiple products if all rules pass" in {
+    CoyaProcessor.priceFor(userTwo, List(funBike, goodBanana)) shouldNot be (None)
   }
 
 }
