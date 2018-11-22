@@ -17,17 +17,17 @@ class CoyaProcessorSpec extends FlatSpec with Matchers {
 
   val user150address502 = User(rID(), badAddress, 150)
 
-  val goodBanana = Banana(rID(), BigDecimal(15), 2)
-  val badBanana = Banana(rID(), BigDecimal(20), 15)
+  val goodBanana = Banana(rID(), 15, 2)
+  val badBanana = Banana(rID(), 20, 10)
 
-  val funBike = Bicycle(rID(), BigDecimal(1000), 18)
+  val funBike = Bicycle(rID(), 1000, 18)
 
   // todo: use table for all possible combinations
-  val coolHouse = House(rID(), BigDecimal(1000000), goodAddress, 40)
-  val superExpensiveHouse = House(rID(), BigDecimal(10000001), goodAddress, 40)
-  val tooBigHouse = House(rID(), BigDecimal(1000000), goodAddress, 1200)
-  val tooSmallHouse = House(rID(), BigDecimal(10000), goodAddress, 30)
-  val badHouse = House(rID(), BigDecimal(10000), badAddress, 100)
+  val coolHouse = House(rID(), 1000000, goodAddress, 40)
+  val superExpensiveHouse = House(rID(), 10000001, goodAddress, 40)
+  val tooBigHouse = House(rID(), 1000000, goodAddress, 1200)
+  val tooSmallHouse = House(rID(), 10000, goodAddress, 29)
+  val badHouse = House(rID(), 10000, badAddress, 100)
 
   /*
    1,000,000 * 0.03 * 0.7 * 0.3 = 6300
@@ -39,7 +39,7 @@ class CoyaProcessorSpec extends FlatSpec with Matchers {
    = 630 € per year ????
    */
   "user w/ URV 10 and house w/ URV 10" should "receive a good offer" in {
-    CoyaProcessor.priceFor(user10, List(coolHouse)) shouldEqual Some(BigDecimal(6300))
+    CoyaProcessor.priceFor(user10, List(coolHouse)) shouldEqual Some(6300)
   }
 
   "any user and house w/ URV > 501" should "be denied" in {
@@ -60,10 +60,10 @@ class CoyaProcessorSpec extends FlatSpec with Matchers {
   }
 
   /*
-   * 1000 * 0.10 * (18 * 0.08) * 0.3 = 43
+   * 1000 * 0.10 * 18 * 0.08 * 0.3 = 43
    */
   "user w/ URV 10" should "receive an offer for a bike" in {
-    CoyaProcessor.priceFor(user10, List(funBike)) shouldBe Some(BigDecimal(43))
+    CoyaProcessor.priceFor(user10, List(funBike)) shouldBe Some(43)
   }
 
   /*
@@ -84,7 +84,7 @@ class CoyaProcessorSpec extends FlatSpec with Matchers {
    * 15 * 1.15 * 1 = 17.25
    */
   "user w/ URV 150" should "receive an offer for good banana" in {
-    CoyaProcessor.priceFor(user150, List(goodBanana)) shouldBe Some(BigDecimal(17.25))
+    CoyaProcessor.priceFor(user150, List(goodBanana)) shouldBe Some(17)
   }
 
   "user w/ URV 150 and bad banana" should "be denied" in {
@@ -99,8 +99,11 @@ class CoyaProcessorSpec extends FlatSpec with Matchers {
     CoyaProcessor.priceFor(user201, List(funBike, coolHouse)) shouldBe None
   }
 
+  /*
+  *  (1000 * 0.10 * 18 * 0.08 * 1) + (15 * 1.15 * 1) = 161
+  */
   it should "be approved for multiple products if all rules pass" in {
-    CoyaProcessor.priceFor(user201, List(funBike, goodBanana)) shouldNot be(None)
+    CoyaProcessor.priceFor(user150, List(funBike, goodBanana)) shouldBe Some(161)
   }
 
 }

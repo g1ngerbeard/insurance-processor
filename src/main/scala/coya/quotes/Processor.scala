@@ -8,74 +8,78 @@ trait Processor {
 
 object CoyaProcessor extends Processor {
 
-  val initValue: Option[BigDecimal] = Some(BigDecimal(1))
-
-  def priceFor(user: User, products: Seq[Product]): Option[BigDecimal] = {
-
-    val surcharges = userSurcharge(user) +: products.map(p => productSurcharge(user, p).map(_ * p.value))
-
-    surcharges
-      .foldLeft(initValue) {
-        case (resOpt, surchargeOpt) =>
-          for {
-            res <- resOpt
-            surcharge <- surchargeOpt
-          } yield res * surcharge
+  def priceFor(user: User, products: Seq[Product]): Option[BigDecimal] =
+    products
+      .map(calculateSubtotal(user, _))
+      .reduce[Option[BigDecimal]]{
+        case (resOpt, subtotalOpt) => for {
+          res      <- resOpt
+          subtotal <- subtotalOpt
+        } yield res + subtotal
       }
       .map(_.setScale(0, BigDecimal.RoundingMode.FLOOR))
 
-  }
-
-  val userRiskToSurcharge = Vector(
+  private val userRiskToSurcharge: Vector[(Int, BigDecimal)] = Vector(
     20 -> 0.3,
     200 -> 1,
     500 -> 3
   )
 
-  val houseRiskSurcharge = Vector(
+  private val houseRiskSurcharge: Vector[(Int, BigDecimal)] = Vector(
     100 -> 0.7,
     299 -> 1,
     501 -> 2.5
   )
 
-  private def userSurcharge(user: User): Option[BigDecimal] =
+  private def calculateUserSurcharge(user: User): Option[BigDecimal] =
     userRiskToSurcharge
       .collectFirst {
-        case (limit, surcharge: Double) if user.risk <= limit =>
-          BigDecimal(surcharge)
+        case (limit, surcharge) if user.risk <= limit => surcharge
       }
 
-  def productSurcharge(u: User, p: Product): Option[BigDecimal] =
+  private def calculateSubtotal(u: User, p: Product): Option[BigDecimal] =
+    for {
+      userSurcharge    <- calculateUserSurcharge(u)
+      productSurcharge <- calculateProductSurcharge(u, p)
+      subtotal         = p.value * userSurcharge * productSurcharge
+      if validateSubtotal(u, p, subtotal)
+    } yield subtotal
+
+  private def calculateProductSurcharge(u: User, p: Product): Option[BigDecimal] =
     p match {
-      case h: House   => houseSurcharge(h).map(_ * BigDecimal(0.03))
-      case b: Banana  => bananaSurcharge(b, u).map(_ * BigDecimal(1.15))
-      case b: Bicycle => bicycleSurcharge(b).map(_ * BigDecimal(0.10)).filter(_ > 100 && u.risk > 150)
+      case h: House   => houseSurcharge(h).map(_ * 0.03)
+      case b: Banana  => bananaSurcharge(b, u).map(_ * 1.15)
+      case b: Bicycle => bicycleSurcharge(b).map(_ * 0.10)
       case _          => None
     }
 
+  private def validateSubtotal(u: User, p: Product, subtotal: BigDecimal): Boolean = {
+    p match {
+      case _: Bicycle => subtotal <= 100 || u.risk <= 150
+      case _          => true
+    }
+  }
+
   private def houseSurcharge(house: House): Option[BigDecimal] = {
-    if (house.value > BigDecimal(10000000)) {
-      Some(BigDecimal(1.15))
+    if (house.value > 10000000) {
+      Some(1.15)
     } else if (30 > house.size || house.size > 1000) {
       None
     } else {
       houseRiskSurcharge
         .collectFirst {
-          case (limit, surcharge: Double)
-              if house.address.locationRisk <= limit =>
-            BigDecimal(surcharge)
+          case (limit, surcharge) if house.address.locationRisk <= limit => surcharge
         }
     }
   }
 
   private def bananaSurcharge(banana: Banana, user: User): Option[BigDecimal] =
-    if ((3 >= banana.blackSpots && banana.blackSpots <= 12) || user.risk > 200) {
+    if ((3 <= banana.blackSpots && banana.blackSpots <= 12) || user.risk > 200) {
       None
     } else {
-      Some(BigDecimal(1))
+      Some(1)
     }
 
-  private def bicycleSurcharge(bike: Bicycle): Option[BigDecimal] =
-    Some(bike.gears * 0.08)
+  private def bicycleSurcharge(bike: Bicycle): Option[Double] = Some(bike.gears * 0.08)
 
 }
